@@ -4,11 +4,13 @@ import { useEffect, useRef } from "react";
 import { Box, Container, Typography } from "@mui/material";
 import { ThemedTitleV2 } from "@refinedev/mui";
 
-import { CredentialResponse } from "../interfaces/google";
+import { CredentialResponse } from "../interfaces/google"; 
+import { logo } from "assets";
 
 // Todo: Update your Google Client ID here
-const GOOGLE_CLIENT_ID =
-  "1041339102270-jlljcjl19jo1hkgf695em3ibr7q2m734.apps.googleusercontent.com";
+// const GOOGLE_CLIENT_ID =
+//   "1041339102270-jlljcjl19jo1hkgf695em3ibr7q2m734.apps.googleusercontent.com";
+const google_client_id = process.env.REACT_APP_GOOGLE_CLIENT_ID?.toString();
 
 export const Login: React.FC = () => {
   const { mutate: login } = useLogin<CredentialResponse>();
@@ -24,7 +26,7 @@ export const Login: React.FC = () => {
       try {
         window.google.accounts.id.initialize({
           ux_mode: "popup",
-          client_id: GOOGLE_CLIENT_ID,
+          client_id: google_client_id,
           callback: async (res: CredentialResponse) => {
             if (res.credential) {
               login(res);
@@ -45,40 +47,33 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <Container
-      style={{
-        height: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Box
-        display="flex"
-        gap="36px"
-        justifyContent="center"
-        flexDirection="column"
-      >
-        <ThemedTitleV2
-          collapsed={false}
-          wrapperStyles={{
-            fontSize: "22px",
-            justifyContent: "center",
-          }}
-        />
-
-        <GoogleButton />
-
-        <Typography align="center" color={"text.secondary"} fontSize="12px">
-          Powered by
-          <img
-            style={{ padding: "0 5px" }}
-            alt="Google"
-            src="https://refine.ams3.cdn.digitaloceanspaces.com/superplate-auth-icons%2Fgoogle.svg"
-          />
-          Google
-        </Typography>
-      </Box>
-    </Container>
-  );
+    <Box component="div" sx={{ backgroundColor: "#FCFCFC" }}>
+        <Container
+            component="main"
+            maxWidth="xs"
+            sx={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                height: "100vh",
+            }}
+        >
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    flexDirection: "column",
+                    alignItems: "center",
+                }}
+            >
+                <div>
+                    <img src={logo} alt="Yariga Logo" />
+                </div>
+                <Box mt={4}>
+                    <GoogleButton />
+                </Box>
+            </Box>
+        </Container>
+    </Box>
+);
 };
