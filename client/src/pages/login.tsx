@@ -1,16 +1,8 @@
-import { useLogin } from "@refinedev/core";
+import { useLogin } from "@pankod/refine-core";
+import { Box, Container } from "@pankod/refine-mui";
 import { useEffect, useRef } from "react";
 
-import { Box, Container, Typography } from "@mui/material";
-import { ThemedTitleV2 } from "@refinedev/mui";
-
-import { CredentialResponse } from "../interfaces/google"; 
-import { logo } from "assets";
-
-// Todo: Update your Google Client ID here
-// const GOOGLE_CLIENT_ID =
-//   "1041339102270-jlljcjl19jo1hkgf695em3ibr7q2m734.apps.googleusercontent.com";
-const google_client_id = process.env.REACT_APP_GOOGLE_CLIENT_ID?.toString();
+import { CredentialResponse } from "../interfaces/google";
 
 export const Login: React.FC = () => {
   const { mutate: login } = useLogin<CredentialResponse>();
@@ -26,7 +18,7 @@ export const Login: React.FC = () => {
       try {
         window.google.accounts.id.initialize({
           ux_mode: "popup",
-          client_id: google_client_id,
+          client_id: "your-client-id",
           callback: async (res: CredentialResponse) => {
             if (res.credential) {
               login(res);
@@ -41,39 +33,45 @@ export const Login: React.FC = () => {
       } catch (error) {
         console.log(error);
       }
-    }, []);
+    }, []); // you can also add your client id as dependency here
 
     return <div ref={divRef} />;
   };
 
   return (
-    <Box component="div" sx={{ backgroundColor: "#FCFCFC" }}>
-        <Container
-            component="main"
-            maxWidth="xs"
-            sx={{
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-                height: "100vh",
-            }}
+    <Box
+      component="div"
+      sx={{
+        background: `radial-gradient(50% 50% at 50% 50%, #63386A 0%, #310438 100%)`,
+        backgroundSize: "cover",
+      }}
+    >
+      <Container
+        component="main"
+        maxWidth="xs"
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          height: "100vh",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
         >
-            <Box
-                sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    flexDirection: "column",
-                    alignItems: "center",
-                }}
-            >
-                <div>
-                    <img src={logo} alt="Yariga Logo" />
-                </div>
-                <Box mt={4}>
-                    <GoogleButton />
-                </Box>
-            </Box>
-        </Container>
+          <div>
+            <img src="./refine.svg" alt="Refine Logo" />
+          </div>
+          <Box mt={4}>
+            <GoogleButton />
+          </Box>
+        </Box>
+      </Container>
     </Box>
-);
+  );
 };

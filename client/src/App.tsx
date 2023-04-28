@@ -1,44 +1,22 @@
+import { AuthProvider, Refine } from "@pankod/refine-core";
 import {
-  AuthBindings,
-  Authenticated,
-  GitHubBanner,
-  Refine,
-} from "@refinedev/core";
-import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
-
-import {
+  CssBaseline,
   ErrorComponent,
-  notificationProvider,
+  GlobalStyles,
+  ReadyPage,
   RefineSnackbarProvider,
-  ThemedLayoutV2,
-} from "@refinedev/mui";
+  notificationProvider,
+} from "@pankod/refine-mui";
 
-import { CssBaseline, GlobalStyles } from "@mui/material";
-import routerBindings, {
-  CatchAllNavigate,
-  NavigateToResource,
-  UnsavedChangesNotifier,
-} from "@refinedev/react-router-v6";
-import dataProvider from "@refinedev/simple-rest";
+import { MuiInferencer } from "@pankod/refine-inferencer/mui";
+import routerProvider from "@pankod/refine-react-router-v6";
+import dataProvider from "@pankod/refine-simple-rest";
 import axios, { AxiosRequestConfig } from "axios";
-import { CredentialResponse } from "./interfaces/google";
-import {
-  BlogPostCreate,
-  BlogPostEdit,
-  BlogPostList,
-  BlogPostShow,
-} from "pages/blog-posts";
-import {
-  CategoryCreate,
-  CategoryEdit,
-  CategoryList,
-  CategoryShow,
-} from "pages/categories";
+import { Header, Layout, Sider, Title } from "components/layout";
+import { ColorModeContextProvider } from "contexts";
+import { CredentialResponse } from "interfaces/google";
 import { Login } from "pages/login";
-import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
 import { parseJwt } from "utils/parse-jwt";
-import { Header } from "./components/header";
-import { ColorModeContextProvider } from "./contexts/color-mode";
 
 const axiosInstance = axios.create();
 axiosInstance.interceptors.request.use((request: AxiosRequestConfig) => {
@@ -55,8 +33,8 @@ axiosInstance.interceptors.request.use((request: AxiosRequestConfig) => {
 });
 
 function App() {
-  const authProvider: AuthBindings = {
-    login: async ({ credential }: CredentialResponse) => {
+  const authProvider: AuthProvider = {
+    login: ({ credential }: CredentialResponse) => {
       const profileObj = credential ? parseJwt(credential) : null;
 
       if (profileObj) {
@@ -67,20 +45,13 @@ function App() {
             avatar: profileObj.picture,
           })
         );
-
-        localStorage.setItem("token", `${credential}`);
-
-        return {
-          success: true,
-          redirectTo: "/",
-        };
       }
 
-      return {
-        success: false,
-      };
+      localStorage.setItem("token", `${credential}`);
+
+      return Promise.resolve();
     },
-    logout: async () => {
+    logout: () => {
       const token = localStorage.getItem("token");
 
       if (token && typeof window !== "undefined") {
@@ -88,145 +59,61 @@ function App() {
         localStorage.removeItem("user");
         axios.defaults.headers.common = {};
         window.google?.accounts.id.revoke(token, () => {
-          return {};
+          return Promise.resolve();
         });
       }
 
-      return {
-        success: true,
-        redirectTo: "/login",
-      };
+      return Promise.resolve();
     },
-    onError: async (error) => {
-      console.error(error);
-      return { error };
-    },
-    check: async () => {
+    checkError: () => Promise.resolve(),
+    checkAuth: async () => {
       const token = localStorage.getItem("token");
 
       if (token) {
-        return {
-          authenticated: true,
-        };
+        return Promise.resolve();
       }
-
-      return {
-        authenticated: false,
-        error: {
-          message: "Check failed",
-          name: "Token not found",
-        },
-        logout: true,
-        redirectTo: "/login",
-      };
+      return Promise.reject();
     },
-    getPermissions: async () => null,
-    getIdentity: async () => {
+
+    getPermissions: () => Promise.resolve(),
+    getUserIdentity: async () => {
       const user = localStorage.getItem("user");
       if (user) {
-        return JSON.parse(user);
+        return Promise.resolve(JSON.parse(user));
       }
-
-      return null;
     },
   };
 
   return (
-    <BrowserRouter>
-      
-      <RefineKbarProvider>
-        <ColorModeContextProvider>
-          <CssBaseline />
-          <GlobalStyles styles={{ html: { WebkitFontSmoothing: "auto" } }} />
-          <RefineSnackbarProvider>
-            <Refine
-              dataProvider={dataProvider("https://api.fake-rest.refine.dev")}
-              notificationProvider={notificationProvider}
-              routerProvider={routerBindings}
-              authProvider={authProvider}
-              resources={[
-                {
-                  name: "blog_posts",
-                  list: "/blog-posts",
-                  create: "/blog-posts/create",
-                  edit: "/blog-posts/edit/:id",
-                  show: "/blog-posts/show/:id",
-                  meta: {
-                    canDelete: true,
-                  },
-                },
-                {
-                  name: "categories",
-                  list: "/categories",
-                  create: "/categories/create",
-                  edit: "/categories/edit/:id",
-                  show: "/categories/show/:id",
-                  meta: {
-                    canDelete: true,
-                  },
-                },
-              ]}
-              options={{
-                syncWithLocation: true,
-                warnWhenUnsavedChanges: true,
-              }}
-            >
-              <Routes>
-                <Route
-                  element={
-                    <Authenticated fallback={<CatchAllNavigate to="/login" />}>
-                      <ThemedLayoutV2 Header={Header}>
-                        <Outlet />
-                      </ThemedLayoutV2>
-                    </Authenticated>
-                  }
-                >
-                  <Route
-                    index
-                    element={<NavigateToResource resource="blog_posts" />}
-                  />
-                  <Route path="/blog-posts">
-                    <Route index element={<BlogPostList />} />
-                    <Route path="create" element={<BlogPostCreate />} />
-                    <Route path="edit/:id" element={<BlogPostEdit />} />
-                    <Route path="show/:id" element={<BlogPostShow />} />
-                  </Route>
-                  <Route path="/categories">
-                    <Route index element={<CategoryList />} />
-                    <Route path="create" element={<CategoryCreate />} />
-                    <Route path="edit/:id" element={<CategoryEdit />} />
-                    <Route path="show/:id" element={<CategoryShow />} />
-                  </Route>
-                </Route>
-                <Route
-                  element={
-                    <Authenticated fallback={<Outlet />}>
-                      <NavigateToResource />
-                    </Authenticated>
-                  }
-                >
-                  <Route path="/login" element={<Login />} />
-                </Route>
-                <Route
-                  element={
-                    <Authenticated>
-                      <ThemedLayoutV2 Header={Header}>
-                        <Outlet />
-                      </ThemedLayoutV2>
-                    </Authenticated>
-                  }
-                >
-                  <Route path="*" element={<ErrorComponent />} />
-                </Route>
-              </Routes>
-
-              <RefineKbar />
-              <UnsavedChangesNotifier />
-            </Refine>
-          </RefineSnackbarProvider>
-        </ColorModeContextProvider>
-      </RefineKbarProvider>
-    </BrowserRouter>
+    <ColorModeContextProvider>
+      <CssBaseline />
+      <GlobalStyles styles={{ html: { WebkitFontSmoothing: "auto" } }} />
+      <RefineSnackbarProvider>
+        <Refine
+          dataProvider={dataProvider("https://api.fake-rest.refine.dev")}
+          notificationProvider={notificationProvider}
+          ReadyPage={ReadyPage}
+          catchAll={<ErrorComponent />}
+          resources={[
+            {
+              name: "posts",
+              list: MuiInferencer,
+              edit: MuiInferencer,
+              show: MuiInferencer,
+              create: MuiInferencer,
+              canDelete: true,
+            },
+          ]}
+          Title={Title}
+          Sider={Sider}
+          Layout={Layout}
+          Header={Header}
+          routerProvider={routerProvider}
+          authProvider={authProvider}
+          LoginPage={Login}
+        />
+      </RefineSnackbarProvider>
+    </ColorModeContextProvider>
   );
 }
 
