@@ -119,35 +119,30 @@ function App() {
           catchAll={<ErrorComponent />}
           resources={[
             {
-              name: "property",
-              list: MuiInferencer,
-              options: {
-                label: "Property"
-              },
+              name: "properties",
+              list: AllProperties,
+              show: PropertyDetails,
+              create: CreateProperty,
+              edit: EditProperty,
               icon: <VillaOutlined />
 
             },
             {
               name: "agent",
-              list: MuiInferencer,
-              options: {
-                label: "Agent"
-              },
+              list: Agents,
+              show: AgentProfile,
               icon: <PeopleAltOutlined />
 
             },
             {
               name: "review",
-              list: MuiInferencer,
-              options: {
-                label: "Review"
-              },
+              list: Home,
               icon: <StarOutlineRounded />
 
             },
             {
               name: "message",
-              list: MuiInferencer,
+              list: Home,
               options: {
                 label: "Message"
               },
@@ -156,7 +151,7 @@ function App() {
             },
             {
               name: "my-profile",
-              list: MuiInferencer,
+              list: MyProfile,
               options: {
                 label: "My Profile"
               },
